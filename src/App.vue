@@ -1,18 +1,29 @@
 <template>
-  <v-app>
+   <v-app>
+    <Header />
     <v-main>
-      <router-view/>
+      <v-container fluid>
+        <router-view></router-view>
+      </v-container>
     </v-main>
-  </v-app>
+    <Footer />
+   </v-app>
 </template>
 
 <script>
+import { defineComponent } from 'vue';
+import Header from './components/Header.vue';
+import Footer from './components/Footer.vue';
 
-export default {
-  name: 'App',
 
-  data: () => ({
-    //
-  }),
-}
+export default defineComponent({
+  name :"App",
+  components:{
+    Header,
+    Footer
+  }
+})
 </script>
+<style lang="scss">
+
+</style>

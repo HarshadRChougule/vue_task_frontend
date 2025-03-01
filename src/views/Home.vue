@@ -14,6 +14,8 @@
         </v-row>
     </v-container>
 </template>
-<script setup>
- 
+<script >
+ export default{
+    name :'Home'
+ }
 </script>

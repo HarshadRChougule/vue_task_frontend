@@ -43,11 +43,13 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { userStore } from "@/store/userStore";
 
 const router = useRouter();
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
+
 const snackbar = ref({
   show: false,
   message: "",
@@ -76,23 +78,27 @@ const login = async () => {
     //else show error
 
     //set data to localstorage
-    const user = res.data;
+    const userData = res.data;
 
-    user.role = user.userType;
-    const accessToken = res.data.token;
-    // const {accessToken, user } = res.data;
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("user", JSON.stringify(user));
+    // Set data to userStore
+    userStore.setUser({
+      id: userData.userId,
+      role: userData.userType,
+      name: `User ${userData.userId.substr(0, 5)}`, // Create a generic name using part of the userId
+      ...userData,
+    });
+    // Set access token
+    localStorage.setItem("accessToken", userData.token);
 
     showSnackbar("Login successful", "success");
 
-    //navigate to the user dashobard
-    if (user.role === "SELLER") {
+    // Navigate to the appropriate dashboard
+    if (userData.userType === "SELLER") {
       router.push("/seller/dashboard");
-    } else if (user.role === "USER") {
+    } else if (userData.userType === "USER") {
       router.push("/");
-    } else if (user.role === "ADMIN") {
-      router.push("/admin/dashboard"); // Assuming there's an admin dashboard
+    } else if (userData.userType === "ADMIN") {
+      router.push("/admin/dashboard");
     }
   } catch (error) {
     console.error("Login error:", error);

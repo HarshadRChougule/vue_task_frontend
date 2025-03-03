@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { userStore } from '@/store/userStore'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import SellerDashboard from '@/views/SellerDashboard.vue'
@@ -36,19 +37,20 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const user = JSON.parse(localStorage.getItem('user'))
-  console.log('in validation',requiresAuth,user);
-  if (requiresAuth && !user) {
-    alert('Page Restricted: You do not have access to this page')
+  const user = userStore.user  // Use the userStore instead of localStorage
+
+  if (requiresAuth && (!user || Object.keys(user).length === 0)) {
+    console.log('Authentication required, redirecting to login')
     next('/login')
   } else if (requiresAuth && user) {
     if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+      console.log('Page Restricted: User does not have the required role')
       alert('Page Restricted: You do not have access to this page')
       next(from.path)
     } else {
       next()
     }
-  }else {
+  } else {
     next()
   }
 })

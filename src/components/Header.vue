@@ -3,10 +3,9 @@
     <v-app-bar-title>My Vue App</v-app-bar-title>
     <v-spacer></v-spacer>
     <v-btn text to="/">Home</v-btn>
-    <template v-if="user">
-      <v-btn text to="/seller/dashboard" v-if="user.role === 'SELLER'"
-        >Dashboard</v-btn
-      >
+    <template v-if="isLoggedIn">
+      <v-btn text to="/seller/dashboard" v-if="isSeller">Dashboard</v-btn>
+      <v-btn text to="/" v-if="isUser"> My Orders</v-btn>
       <v-btn text @click="logout">Logout</v-btn>
     </template>
     <v-btn text to="/login" v-else>Login</v-btn>
@@ -15,20 +14,26 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { userStore } from "@/store/userStore";
 
 const router = useRouter();
-const user = ref(null);
 
-onMounted(() => {
-  user.value = JSON.parse(localStorage.getItem("user") || "null");
-  console.log(user);
+const isLoggedIn = computed(() => {
+  return userStore.user && Object.keys(userStore.user).length > 0;
+});
+
+const isSeller = computed(() => {
+  return userStore.user && userStore.user.role === "SELLER";
+});
+
+const isUser = computed(() => {
+  return userStore.user && userStore.user.role === "USER";
 });
 
 const logout = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
-  user.value = null;
+  userStore.clearUser();
   router.push("/login");
 };
 </script>

@@ -30,6 +30,13 @@
             <v-spacer></v-spacer>
             <v-btn color="primary" @click="login">Login</v-btn>
           </v-card-actions>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <p>
+              Don't have an account?
+              <router-link to="/signup">Sign Up</router-link>
+            </p>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>

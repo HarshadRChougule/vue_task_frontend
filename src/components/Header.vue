@@ -8,7 +8,10 @@
       <v-btn text to="/" v-if="isUser"> My Orders</v-btn>
       <v-btn text @click="logout">Logout</v-btn>
     </template>
-    <v-btn text to="/login" v-else>Login</v-btn>
+    <template v-if="!isLoggedIn">
+      <v-btn text to="/login">Login</v-btn>
+      <v-btn text to="/signup">Sign Up</v-btn>
+    </template>
   </v-app-bar>
 </template>
 

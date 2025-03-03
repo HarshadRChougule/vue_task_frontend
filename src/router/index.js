@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { userStore } from '@/store/userStore'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
+import Signup from '@/views/Signup.vue'
 import SellerDashboard from '@/views/SellerDashboard.vue'
 
 const routes = [
@@ -27,6 +28,12 @@ const routes = [
     name: 'test',
     component: SellerDashboard,
     meta: { requiresAuth: true, roles: ['SELLER'] }
+  },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: Signup,
+    meta: { requiresAuth: false}
   }
 ]
 

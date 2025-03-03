@@ -82,9 +82,9 @@
 </template>
 
 <script setup>
-import axios from "axios";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import axiosInstance from "@/plugins/axios";
 
 const router = useRouter();
 const form = ref(null);
@@ -114,6 +114,7 @@ const signup = async () => {
   loading.value = true;
 
   try {
+    console.log(userType.value);
     const userData = {
       firstName: firstName.value,
       lastName: lastName.value,
@@ -125,13 +126,10 @@ const signup = async () => {
 
     if (userType.value === "SELLER") {
       userData.companyName = companyName.value;
-      userData.gstin = gstin.value;
+      userData.GSTIN = gstin.value;
     }
     console.log(userData);
-    const response = await axios.post(
-      "http://localhost:6004/api/auth/signup",
-      userData
-    );
+    const response = await axiosInstance.post("/auth/signup", userData);
 
     console.log("Signup successful:", response.data);
     alert("Signup successful! Please login.");

@@ -22,7 +22,7 @@ const props = defineProps({
   },
   timeout: {
     type: Number,
-    default: 300,
+    default: 30000,
   },
   location: {
     type: String,

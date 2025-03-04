@@ -114,6 +114,7 @@ const signup = async () => {
   loading.value = true;
 
   try {
+    //Set userData
     console.log(userType.value);
     const userData = {
       firstName: firstName.value,
@@ -123,20 +124,32 @@ const signup = async () => {
       userType: userType.value,
       role: userType.value === "SELLER" ? "SELLER" : "USER",
     };
-
+    //check seller and user condition and add Company name and gst
     if (userType.value === "SELLER") {
       userData.companyName = companyName.value;
       userData.GSTIN = gstin.value;
     }
     console.log(userData);
+    //save data
     const response = await axiosInstance.post("/auth/signup", userData);
-
+    //is data is saved show sucess
     console.log("Signup successful:", response.data);
-    alert("Signup successful! Please login.");
+    //or show error
+    //TODO - show error
+
+    // Store a message to show after navigation
+    sessionStorage.setItem(
+      "initialMessage",
+      JSON.stringify({
+        text: "Signup successful! Please login.",
+        color: "success",
+      })
+    );
+
     router.push("/login");
   } catch (error) {
     console.error("Signup error:", error);
-    alert("Signup failed. Please try again.");
+    showMessage("Login failed. Please check your credentials.", "error");
   } finally {
     loading.value = false;
   }

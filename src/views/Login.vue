@@ -84,6 +84,7 @@ const login = async () => {
     console.log(res);
     //check if status get 200, show sucess
     //else show error
+    //TODO
 
     //set data to localstorage
     const userData = res.data;
@@ -98,7 +99,14 @@ const login = async () => {
     // Set access token
     localStorage.setItem("accessToken", userData.token);
 
-    showSnackbar("Login successful", "success");
+    // Store a message to show after navigation
+    sessionStorage.setItem(
+      "initialMessage",
+      JSON.stringify({
+        text: "Login successful",
+        color: "success",
+      })
+    );
 
     // Navigate to the appropriate dashboard
     if (userData.userType === "SELLER") {
@@ -110,7 +118,7 @@ const login = async () => {
     }
   } catch (error) {
     console.error("Login error:", error);
-    showSnackbar("Login failed. Please check your credentials.", "error");
+    showMessage("Login failed. Please check your credentials.", "error");
   } finally {
     loading.value = false;
   }

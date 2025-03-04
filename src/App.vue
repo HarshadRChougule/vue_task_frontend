@@ -7,46 +7,69 @@
       </v-container>
     </v-main>
     <Footer />
-    <FlotMessage v-if="message" :text="message.text" :color="message.color" />
+    <FlotMessage
+      v-if="messagingSystem.message"
+      :text="messagingSystem.message.text"
+      :color="messagingSystem.message.color"
+      :timeout="messagingSystem.message.timeout"
+      :location="messagingSystem.message.location"
+    />
   </v-app>
 </template>
 
 <script>
-import { defineComponent, ref, watch } from "vue";
-import { onBeforeRouteUpdate, useRouter } from "vue-router";
+import { provide, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import FlotMessage from "./components/FlotMessage.vue";
 import { userStore } from "./store/userStore";
+import { createMessagingSystem } from "./plugins/messaging";
 
 const router = useRouter();
-const message = ref(null);
+const messagingSystem = createMessagingSystem();
 
-onBeforeRouteUpdate((to, from) => {
-  if (to.path === "/login" && from.path && from.path !== "/login") {
-    message.value = { text: "You have been logged out", color: "info" };
-  } else if (to.path !== "/login" && from.path === "/login") {
-    const userName =
-      userStore.user?.name || `User ${userStore.user?.id?.substr(0, 5) || ""}`;
-    message.value = { text: `Welcome, ${userName}!`, color: "success" };
-  } else {
-    message.value = null;
+// Provide the messaging system to all components
+provide("messagingSystem", messagingSystem);
+console.log(router);
+// Handle route changes for showing messages
+router.afterEach((to, from) => {
+  if (
+    to.path === "/login" &&
+    from.path &&
+    from.path !== "/login" &&
+    from.path !== "/signup"
+  ) {
+    messagingSystem.showMessage("You have been logged out", "info");
+  } else if (from.path === "/login" && to.path !== "/login") {
+    const userName = userStore.user?.name || "User";
+    messagingSystem.showMessage(`Welcome, ${userName}!`, "success");
+  }
+});
+
+// Check if we need to show a message on initial load
+onMounted(() => {
+  const initialMessage = sessionStorage.getItem("initialMessage");
+  if (initialMessage) {
+    const { text, color } = JSON.parse(initialMessage);
+    messagingSystem.showMessage(text, color);
+    sessionStorage.removeItem("initialMessage");
   }
 });
 
 // Clear message after 3 seconds
-function clearMessage() {
-  setTimeout(() => {
-    message.value = null;
-  }, 3000);
-}
+// function clearMessage() {
+//   setTimeout(() => {
+//     message.value = null;
+//   }, 3000);
+// }
 
 // Watch for message changes and clear after delay
-watch(message, (newVal) => {
-  if (newVal) {
-    clearMessage();
-  }
-});
+// watch(message, (newVal) => {
+//   if (newVal) {
+//     clearMessage();
+//   }
+// });
 
 export default defineComponent({
   name: "App",

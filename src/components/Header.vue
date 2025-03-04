@@ -37,6 +37,16 @@ const isUser = computed(() => {
 
 const logout = () => {
   userStore.clearUser();
+
+  // Store a message to show after navigation
+  sessionStorage.setItem(
+    "initialMessage",
+    JSON.stringify({
+      text: "You have been logged out",
+      color: "info",
+    })
+  );
+
   router.push("/login");
 };
 </script>

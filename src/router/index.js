@@ -1,9 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { userStore } from '@/store/userStore'
+//Import views
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Signup from '@/views/Signup.vue'
 import SellerDashboard from '@/views/SellerDashboard.vue'
+import Dashboard from '@/views/Dashboard.vue'
+
 
 const routes = [
   {
@@ -18,14 +21,14 @@ const routes = [
     component: Login
   },
   {
-    path: '/seller/dashboard',
-    name: 'SellerDashboard',
-    component: SellerDashboard,
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
     meta: { requiresAuth: true, roles: ['SELLER'] }
   },
   {
-    path: '/test',
-    name: 'test',
+    path: '/seller/dashboard',
+    name: 'SellerDashboard',
     component: SellerDashboard,
     meta: { requiresAuth: true, roles: ['SELLER'] }
   },
@@ -34,7 +37,8 @@ const routes = [
     name: 'Signup',
     component: Signup,
     meta: { requiresAuth: false}
-  }
+  },
+   
 ]
 
 const router = createRouter({
@@ -42,24 +46,41 @@ const router = createRouter({
   routes
 })
 
+// Navigation guard
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const user = userStore.user  // Use the userStore instead of localStorage
-
-  if (requiresAuth && (!user || Object.keys(user).length === 0)) {
-    console.log('Authentication required, redirecting to login')
-    next('/login')
-  } else if (requiresAuth && user) {
-    if (to.meta.roles && !to.meta.roles.includes(user.role)) {
-      console.log('Page Restricted: User does not have the required role')
-      alert('Page Restricted: You do not have access to this page')
-      next(from.path)
-    } else {
-      next()
+  const userJson = localStorage.getItem('user');
+  const user = userJson ? JSON.parse(userJson) : null;
+  console.log('in login')
+  // Check if route requires authentication
+  if (to.meta.requiresAuth) {
+    if (!user) {
+      // Not authenticated, redirect to login
+      showGlobalMessage('Please log in to access this page', 'warning');
+      return next('/login');
     }
-  } else {
-    next()
+    
+    // Check role-based access
+    if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+      showGlobalMessage('You do not have permission to access this page', 'error');
+      
+      // Redirect to appropriate page based on role
+      if (user.role === 'USER') {
+        return next('/');
+      } else {
+        return next('/dashboard');
+      }
+    }
+  } else if (user && to.path === '/login') {
+    // User is already logged in and trying to access login page
+    // Redirect to appropriate page based on role
+    if (user.role === 'USER') {
+      return next('/');
+    } else {
+      return next('/dashboard');
+    }
   }
-})
+  
+  next();
+});
 
 export default router

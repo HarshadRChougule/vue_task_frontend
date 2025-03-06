@@ -7,7 +7,7 @@
             <v-toolbar-title>Login</v-toolbar-title>
           </v-toolbar>
           <v-card-text>
-            <v-form @submit.prevent="login">
+            <v-form @submit.prevent="login" ref="form">
               <v-text-field
                 v-model="email"
                 label="Email"
@@ -57,11 +57,21 @@ const router = useRouter();
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
+const form = ref(null);
 
-// const messagingSystem = createMessagingSystem();
+// Form validation rules
+const rules = {
+  required: (v) => !!v || "This field is required",
+  email: (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+};
 
 //login method
 const login = async () => {
+  // Validate form
+  const isValid = form.value.validate();
+  if (!isValid) {
+    return;
+  }
   //set loader on
   loading.value = true;
   try {
@@ -99,7 +109,7 @@ const login = async () => {
 
     // Navigate to the appropriate dashboard
     if (userData.userType === "SELLER") {
-      router.push("/seller/dashboard");
+      router.push("/dashboard");
     } else if (userData.userType === "USER") {
       router.push("/");
     } else if (userData.userType === "ADMIN") {

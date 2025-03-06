@@ -49,7 +49,7 @@ const roleSpecificMessage = computed(() => {
   if (!props.user) return "";
 
   switch (props.user.role) {
-    case "SUPER_USER":
+    case "SUPER_ADMIN":
       return "As a Super User, you have full access to all features including user management and product administration.";
     case "SELLER":
       return "As a Seller, you can manage your products and view your sales dashboard.";

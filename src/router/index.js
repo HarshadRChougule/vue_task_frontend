@@ -6,6 +6,7 @@ import Login from '@/views/Login.vue'
 import Signup from '@/views/Signup.vue'
 import SellerDashboard from '@/views/SellerDashboard.vue'
 import Dashboard from '@/views/Dashboard.vue'
+import Products from '@/views/Products.vue'
 
 
 const routes = [
@@ -38,6 +39,15 @@ const routes = [
     component: Signup,
     meta: { requiresAuth: false}
   },
+  {
+    path: '/products',
+    name: 'Products',
+    component: Products,
+    meta: {
+      requiresAuth: true,
+      roles: ['SELLER', 'SUPER_ADMIN']
+    }
+  }
    
 ]
 

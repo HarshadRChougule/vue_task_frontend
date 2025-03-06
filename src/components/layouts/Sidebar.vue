@@ -34,7 +34,7 @@
       ></v-list-item>
 
       <v-list-item
-        v-if="isSeller || isSuperUser"
+        v-if="isSeller || isSuperAdmin"
         prepend-icon="mdi-package-variant-closed"
         title="Products"
         value="products"
@@ -43,7 +43,7 @@
       ></v-list-item>
 
       <v-list-item
-        v-if="isSuperUser"
+        v-if="isSuperAdmin"
         prepend-icon="mdi-account-multiple"
         title="Users"
         value="users"
@@ -90,8 +90,8 @@ const isSeller = computed(() => {
   return props.user && props.user.role === "SELLER";
 });
 
-const isSuperUser = computed(() => {
-  return props.user && props.user.role === "SUPER_USER";
+const isSuperAdmin = computed(() => {
+  return props.user && props.user.role === "SUPER_ADMIN";
 });
 
 // Logout function

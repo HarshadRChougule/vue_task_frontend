@@ -1,0 +1,313 @@
+<template>
+  <DashboardLayout :user="user">
+    <v-container fluid>
+      <!-- Page Header -->
+      <v-row>
+        <v-col cols="12" class="d-flex justify-space-between align-center">
+          <h1 class="text-h4">Products</h1>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-plus"
+            @click="openProductForm()"
+          >
+            Add New Product
+          </v-btn>
+        </v-col>
+      </v-row>
+      <!-- Search and Filter -->
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="search"
+            label="Search Products"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <!-- Products Table -->
+      <v-card>
+        <v-data-table
+          :headers="headers"
+          :items="filteredProducts"
+          :search="search"
+          :loading="loading"
+          class="elevation-1"
+        >
+          <!-- img column -->
+          <template v-slot:item.image="{ item }">
+            <v-avatar size="40">
+              <v-img :src="item.image" :alt="item.name"></v-img>
+            </v-avatar>
+          </template>
+          <!-- Price Column -->
+          <template v-slot:item.price="{ item }">
+            ${{ item.price.toFixed(2) }}
+          </template>
+          <!-- Actions Column -->
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              icon
+              variant="text"
+              color="primary"
+              size="small"
+              @click="viewProduct(item)"
+            >
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              color="warning"
+              size="small"
+              @click="editProduct(item)"
+            >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              color="error"
+              size="small"
+              @click="confirmDelete(item)"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </template>
+        </v-data-table>
+      </v-card>
+
+      <!-- Delete Confirmation Dialog -->
+      <v-dialog v-model="deleteDialog" max-width="500px">
+        <v-card>
+          <v-card-title class="text-h5">Delete Product</v-card-title>
+          <v-card-text>
+            Are you sure you want to delete this product? This action cannot be
+            undone.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" variant="text" @click="deleteDialog = false"
+              >Cancel</v-btn
+            >
+            <v-btn color="error" variant="text" @click="deleteProduct"
+              >Delete</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- Product Form Dialog -->
+      <v-dialog v-model="formDialog" max-width="800px">
+        <v-card>
+          <v-card-title class="text-h5">
+            {{ editMode ? "Edit Product" : "Add New Product" }}
+          </v-card-title>
+          <v-card-text>
+            <ProductForm
+              :product="currentProduct"
+              :edit-mode="editMode"
+              @save="saveProduct"
+              @cancel="formDialog = false"
+            />
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <!-- Product Details Dialog -->
+      <v-dialog v-model="detailsDialog" max-width="800px">
+        <v-card>
+          <v-card-title class="text-h5">Product Details</v-card-title>
+          <v-card-text>
+            <ProductDetails
+              :product="currentProduct"
+              @close="detailsDialog = false"
+              @edit="editFromDetails"
+            />
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+    </v-container>
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { showGlobalMessage } from "@/eventBus";
+//views
+import DashboardLayout from "@/components/layouts/DashboardLayout.vue";
+import ProductDetails from "@/components/products/ProductDetails.vue";
+import ProductForm from "@/components/products/ProductForm.vue";
+
+//veriables
+const loading = ref(true);
+const user = ref(null);
+const router = useRoute();
+const search = ref("");
+
+//tabel headers
+const headers = [
+  { title: "ID", key: "id", sortable: true },
+  { title: "Image", key: "image", sortable: false },
+  { title: "Name", key: "name", sortable: true },
+  { title: "Price", key: "price", sortable: true },
+  { title: "Quantity", key: "quantity", sortable: true },
+  { title: "Actions", key: "action", sortable: false },
+];
+
+// Mock products data
+const products = ref([
+  {
+    id: 1,
+    name: "Smartphone X",
+    image: "https://via.placeholder.com/150",
+    description: "A high-end smartphone with the latest features.",
+    price: 999.99,
+    quantity: 50,
+  },
+  {
+    id: 2,
+    name: "Laptop Pro",
+    image: "https://via.placeholder.com/150",
+    description: "Powerful laptop for professionals.",
+    price: 1499.99,
+    quantity: 25,
+  },
+  {
+    id: 3,
+    name: "Wireless Headphones",
+    image: "https://via.placeholder.com/150",
+    description: "Premium wireless headphones with noise cancellation.",
+    price: 249.99,
+    quantity: 100,
+  },
+]);
+
+// dialog control veriable
+const deleteDialog = ref(false);
+const formDialog = ref(false);
+const detailsDialog = ref(false);
+const editMode = ref(false);
+const currentProduct = ref({
+  id: null,
+  name: "",
+  image: "",
+  description: "",
+  price: 0,
+  quantity: 0,
+});
+const productToDelete = ref(null);
+
+//search filter
+//on static data
+const filteredProducts = computed(() => {
+  if (!search.value) return products.value;
+
+  const searchTerm = search.value.toLowerCase();
+  return products.value.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.description.toLowerCase().includes(searchTerm)
+  );
+});
+//on database
+// TODO
+
+//main loagic
+// All the methods
+const openProductForm = () => {
+  editMode.value = false;
+  currentProduct.value = {
+    id: null,
+    name: "",
+    image: "https://via.placeholder.com/150",
+    description: "",
+    quantity: 0,
+    price: 0,
+  };
+  formDialog.value = true;
+};
+
+const viewProduct = (product) => {
+  currentProduct.value = { ...product };
+  detailsDialog.value = true;
+};
+
+const editProduct = (product) => {
+  editMode.value = true;
+  currentProduct.value = { ...product };
+  formDialog.value = true;
+};
+
+const editFromDetails = () => {
+  detailsDialog.value = false;
+  editMode.value = true;
+  formDialog.value = true;
+};
+
+const confirmDelete = (product) => {
+  productToDelete.value = product;
+  deleteDialog.value = true;
+};
+//delet from local
+const deleteProduct = () => {
+  const index = products.value.findIndex(
+    (p) => p.id === productToDelete.value.id
+  );
+  if (index !== -1) {
+    products.value.splice(index, 1);
+    showGlobalMessage("Product deleted successfully", "success");
+  }
+  deleteDialog.value = false;
+  productToDelete.value = null;
+};
+//delete from api / DB
+// TODO
+
+//save / update product on local
+const saveProduct = (product) => {
+  if (editMode.value) {
+    //update existing product
+    const index = product.value.findIndex((p) => p.id === product.id);
+    if (index !== -1) {
+      products.value[index] = product;
+      showGlobalMessage("Product updated successfully", "success");
+    }
+  } else {
+    //add new product
+    const newId = Math.max(0, ...products.value.map((p) => p.id)) + 1;
+    products.value.push({
+      ...product,
+      id: newId,
+    });
+    showGlobalMessage("Product added successfully", "success");
+  }
+  //API call
+  // TODO
+
+  formDialog.value = false;
+
+  onMounted(() => {
+    const userJson = localStorage.getItem("currentUser");
+    if (userJson) {
+      user.value = JSON.parse(userJson);
+      // Check if user has permission to access this page
+      if (user.value.role !== "SELLER" && user.value.role !== "SUPER_ADMIN") {
+        router.push("/");
+        showGlobalMessage(
+          "You do not have permission to access this page",
+          "error"
+        );
+      }
+    } else {
+      // Redirect to login if no user data is found
+      router.push("/login");
+    }
+  });
+};
+</script>
+
+<style lang="scss" scoped></style>

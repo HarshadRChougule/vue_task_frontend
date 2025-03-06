@@ -3,7 +3,7 @@
     <WelcomeMessage :user="user" />
 
     <!-- Dashboard Stats for Sellers and Super Users -->
-    <v-row v-if="isSeller || isSuperUser">
+    <v-row v-if="isSeller || isSuperAdmin">
       <v-col
         v-for="(card, index) in dashboardCards"
         :key="index"
@@ -24,7 +24,7 @@
     </v-row>
 
     <!-- Quick Actions -->
-    <v-card class="mt-6" v-if="isSeller || isSuperUser">
+    <v-card class="mt-6" v-if="isSeller || isSuperAdmin">
       <v-card-title>
         <v-icon start icon="mdi-lightning-bolt"></v-icon>
         Quick Actions
@@ -37,7 +37,7 @@
             </v-btn>
           </v-col>
 
-          <v-col cols="12" sm="6" md="3" v-if="isSuperUser">
+          <v-col cols="12" sm="6" md="3" v-if="isSuperAdmin">
             <v-btn
               block
               color="warning"
@@ -116,8 +116,8 @@ const isSeller = computed(() => {
   return user.value && user.value.role === "SELLER";
 });
 
-const isSuperUser = computed(() => {
-  return user.value && user.value.role === "SUPER_USER";
+const isSuperAdmin = computed(() => {
+  return user.value && user.value.role === "SUPER_ADMIN";
 });
 
 // Load user data on component mount

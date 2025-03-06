@@ -16,12 +16,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { useRouter } from "vue-router";
 import { userStore } from "@/store/userStore";
 
 const router = useRouter();
+//const showMessage = inject("showMessage", null);
+// const showMessage = inject("showMessage");
 
 const isLoggedIn = computed(() => {
   return userStore.user && Object.keys(userStore.user).length > 0;
@@ -38,7 +39,7 @@ const isUser = computed(() => {
 const logout = () => {
   userStore.clearUser();
 
-  // Store a message to show after navigation
+  // Use sessionStorage
   sessionStorage.setItem(
     "initialMessage",
     JSON.stringify({
@@ -46,6 +47,9 @@ const logout = () => {
       color: "info",
     })
   );
+
+  // Option 2: Show message directly (uncomment if you want to try this approach)
+  // showMessage("You have been logged out", "info");
 
   router.push("/login");
 };

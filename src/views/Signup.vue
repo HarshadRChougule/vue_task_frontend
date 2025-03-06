@@ -149,7 +149,7 @@ const signup = async () => {
     router.push("/login");
   } catch (error) {
     console.error("Signup error:", error);
-    showMessage("Login failed. Please check your credentials.", "error");
+    // showMessage("Login failed. Please check your credentials.", "error");
   } finally {
     loading.value = false;
   }

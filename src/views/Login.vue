@@ -40,39 +40,32 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color">
+    <!-- <v-snackbar v-model="snackbar.show" :color="snackbar.color">
       {{ snackbar.message }}
-    </v-snackbar>
+    </v-snackbar> -->
   </v-container>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
 // import axios from "axios";
 import { userStore } from "@/store/userStore";
 import axiosInstance from "@/plugins/axios";
+// import { createMessagingSystem } from "@/plugins/messaging";
 
 const router = useRouter();
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
 
-const snackbar = ref({
-  show: false,
-  message: "",
-  color: "success",
-});
+// const messagingSystem = createMessagingSystem();
 
-const showSnackbar = (message, color) => {
-  snackbar.value = {
-    show: true,
-    message,
-    color,
-  };
-};
 //login method
 const login = async () => {
+  // if (!form.value.validate()) {
+  //   return;
+  // }
   //set loader on
   loading.value = true;
   try {
@@ -100,10 +93,11 @@ const login = async () => {
     localStorage.setItem("accessToken", userData.token);
 
     // Store a message to show after navigation
+
     sessionStorage.setItem(
       "initialMessage",
       JSON.stringify({
-        text: "Login successful",
+        text: "Login successful!",
         color: "success",
       })
     );
@@ -118,7 +112,14 @@ const login = async () => {
     }
   } catch (error) {
     console.error("Login error:", error);
-    showMessage("Login failed. Please check your credentials.", "error");
+
+    sessionStorage.setItem(
+      "initialMessage",
+      JSON.stringify({
+        text: "Error while login!",
+        color: "error",
+      })
+    );
   } finally {
     loading.value = false;
   }

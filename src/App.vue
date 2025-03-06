@@ -13,17 +13,26 @@
       :location="message.location"
       @close="clearMessage"
     />
+    <FlotMessage
+      v-if="messageState"
+      :text="messageState.text"
+      :color="messageState.color"
+      :timeout="messageState.timeout"
+      :location="messageState.location"
+      @close="messageState = null"
+    />
   </v-app>
 </template>
 
 <script setup>
 import { ref, provide, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
-import router from "./router";
+//import router from "./router";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import FlotMessage from "./components/FlotMessage.vue";
-import { userStore } from "./store/userStore";
+//import { userStore } from "./store/userStore";
+import { messageState } from "./eventBus";
 
 // Message state
 const message = ref(null);
@@ -34,7 +43,7 @@ const showMessage = (
   text,
   color = "success",
   timeout = 3000,
-  location = "top"
+  location = "top-right"
 ) => {
   console.log("Showing message:", text);
   message.value = { text, color, timeout, location };

@@ -49,10 +49,9 @@
 <script setup>
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
-// import axios from "axios";
 import { userStore } from "@/store/userStore";
 import axiosInstance from "@/plugins/axios";
-// import { createMessagingSystem } from "@/plugins/messaging";
+import { showGlobalMessage } from "@/eventBus";
 
 const router = useRouter();
 const email = ref("");
@@ -63,9 +62,6 @@ const loading = ref(false);
 
 //login method
 const login = async () => {
-  // if (!form.value.validate()) {
-  //   return;
-  // }
   //set loader on
   loading.value = true;
   try {
@@ -93,7 +89,6 @@ const login = async () => {
     localStorage.setItem("accessToken", userData.token);
 
     // Store a message to show after navigation
-
     sessionStorage.setItem(
       "initialMessage",
       JSON.stringify({
@@ -112,14 +107,8 @@ const login = async () => {
     }
   } catch (error) {
     console.error("Login error:", error);
-
-    sessionStorage.setItem(
-      "initialMessage",
-      JSON.stringify({
-        text: "Error while login!",
-        color: "error",
-      })
-    );
+    // Show error message
+    showGlobalMessage("Invalid email or password!", "error");
   } finally {
     loading.value = false;
   }

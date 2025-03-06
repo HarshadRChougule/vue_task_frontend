@@ -38,44 +38,49 @@
           class="elevation-1"
         >
           <!-- img column -->
-          <template v-slot:item.image="{ item }">
+          <template #[`item.image`]="{ item }">
             <v-avatar size="40">
               <v-img :src="item.image" :alt="item.name"></v-img>
             </v-avatar>
           </template>
           <!-- Price Column -->
-          <template v-slot:item.price="{ item }">
+          <template #[`item.price`]="{ item }">
             ${{ item.price.toFixed(2) }}
           </template>
           <!-- Actions Column -->
-          <template v-slot:item.actions="{ item }">
-            <v-btn
-              icon
-              variant="text"
-              color="primary"
-              size="small"
-              @click="viewProduct(item)"
-            >
-              <v-icon>mdi-eye</v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              variant="text"
-              color="warning"
-              size="small"
-              @click="editProduct(item)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              variant="text"
-              color="error"
-              size="small"
-              @click="confirmDelete(item)"
-            >
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
+          <template #[`item.actions`]="{ item }">
+            <div class="d-flex action-buttons">
+              <v-btn
+                icon
+                variant="outlined"
+                color="primary"
+                size="small"
+                @click="viewProduct(item)"
+                class="mr-1 action-btn"
+              >
+                <v-icon size="small" color="primary">mdi-eye</v-icon>
+              </v-btn>
+              <v-btn
+                icon
+                variant="outlined"
+                color="warning"
+                size="small"
+                @click="editProduct(item)"
+                class="mr-1 action-btn"
+              >
+                <v-icon size="small" color="warning">mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn
+                icon
+                variant="outlined"
+                color="error"
+                size="small"
+                @click="confirmDelete(item)"
+                class="action-btn"
+              >
+                <v-icon size="small" color="error">mdi-delete</v-icon>
+              </v-btn>
+            </div>
           </template>
         </v-data-table>
       </v-card>
@@ -135,7 +140,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { showGlobalMessage } from "@/eventBus";
 //views
 import DashboardLayout from "@/components/layouts/DashboardLayout.vue";
@@ -143,9 +148,9 @@ import ProductDetails from "@/components/products/ProductDetails.vue";
 import ProductForm from "@/components/products/ProductForm.vue";
 
 //veriables
+const router = useRouter();
 const loading = ref(true);
 const user = ref(null);
-const router = useRoute();
 const search = ref("");
 
 //tabel headers
@@ -155,7 +160,7 @@ const headers = [
   { title: "Name", key: "name", sortable: true },
   { title: "Price", key: "price", sortable: true },
   { title: "Quantity", key: "quantity", sortable: true },
-  { title: "Actions", key: "action", sortable: false },
+  { title: "Actions", key: "actions", sortable: false, align: "center" },
 ];
 
 // Mock products data
@@ -163,7 +168,7 @@ const products = ref([
   {
     id: 1,
     name: "Smartphone X",
-    image: "https://via.placeholder.com/150",
+    image: "https://picsum.photos/id/1/150",
     description: "A high-end smartphone with the latest features.",
     price: 999.99,
     quantity: 50,
@@ -171,7 +176,7 @@ const products = ref([
   {
     id: 2,
     name: "Laptop Pro",
-    image: "https://via.placeholder.com/150",
+    image: "https://picsum.photos/id/2/150",
     description: "Powerful laptop for professionals.",
     price: 1499.99,
     quantity: 25,
@@ -179,7 +184,7 @@ const products = ref([
   {
     id: 3,
     name: "Wireless Headphones",
-    image: "https://via.placeholder.com/150",
+    image: "https://picsum.photos/id/3/150",
     description: "Premium wireless headphones with noise cancellation.",
     price: 249.99,
     quantity: 100,
@@ -223,7 +228,7 @@ const openProductForm = () => {
   currentProduct.value = {
     id: null,
     name: "",
-    image: "https://via.placeholder.com/150",
+    image: "https://picsum.photos/id/20/150",
     description: "",
     quantity: 0,
     price: 0,
@@ -271,9 +276,9 @@ const deleteProduct = () => {
 const saveProduct = (product) => {
   if (editMode.value) {
     //update existing product
-    const index = product.value.findIndex((p) => p.id === product.id);
+    const index = products.value.findIndex((p) => p.id === product.id);
     if (index !== -1) {
-      products.value[index] = product;
+      products.value[index] = { ...product };
       showGlobalMessage("Product updated successfully", "success");
     }
   } else {
@@ -287,27 +292,44 @@ const saveProduct = (product) => {
   }
   //API call
   // TODO
-
   formDialog.value = false;
-
-  onMounted(() => {
-    const userJson = localStorage.getItem("currentUser");
-    if (userJson) {
-      user.value = JSON.parse(userJson);
-      // Check if user has permission to access this page
-      if (user.value.role !== "SELLER" && user.value.role !== "SUPER_ADMIN") {
-        router.push("/");
-        showGlobalMessage(
-          "You do not have permission to access this page",
-          "error"
-        );
-      }
-    } else {
-      // Redirect to login if no user data is found
-      router.push("/login");
-    }
-  });
 };
+
+// Load user data on component mount
+onMounted(() => {
+  const userJson = localStorage.getItem("user"); // Changed from "user" to "currentUser"
+  if (userJson) {
+    user.value = JSON.parse(userJson);
+    // Check if user has permission to access this page
+    if (user.value.role !== "SELLER" && user.value.role !== "SUPER_USER") {
+      router.push("/");
+      showGlobalMessage(
+        "You do not have permission to access this page",
+        "error"
+      );
+    }
+  } else {
+    console.log("IN product on mound else loop");
+
+    // Redirect to login if no user data is found
+    router.push("/login");
+  }
+
+  setTimeout(() => {
+    loading.value = false;
+  }, 500);
+});
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.action-btn {
+  opacity: 1 !important;
+  border: 1px solid;
+  margin: 0 2px;
+}
+
+.action-btn .v-icon {
+  opacity: 1 !important;
+  font-size: 18px !important;
+}
+</style>

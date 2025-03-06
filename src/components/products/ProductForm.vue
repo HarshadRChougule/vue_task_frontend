@@ -34,7 +34,7 @@
             contain
             class="bg-grey-lighten-2 rounded"
           >
-            <template v-slot:placeholder>
+            <template #:placeholder>
               <v-row class="fill-height ma-0" align="center" justify="center">
                 <v-progress-circular
                   indeterminate

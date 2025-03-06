@@ -1,11 +1,28 @@
 <template>
   <DashboardLayout :user="user">
     <WelcomeMessage :user="user" />
-    <v-row v-if="isSeller || isSuperAdmin">
-      <v-col col="12" sm="6" md="3">
-        <v-card> </v-card>
+
+    <!-- Dashboard Stats for Sellers and Super Users -->
+    <v-row v-if="isSeller || isSuperUser">
+      <v-col
+        v-for="(card, index) in dashboardCards"
+        :key="index"
+        cols="12"
+        sm="6"
+        md="3"
+      >
+        <v-card class="mx-auto" :color="card.cardColor">
+          <v-card-text>
+            <div class="text-overline mb-1">{{ card.cardTitle }}</div>
+            <div class="text-h4 mb-2">
+              {{ card.prefix }}{{ formatCardStat(card) }}{{ card.suffix }}
+            </div>
+            <v-icon :icon="card.icon" size="large"></v-icon>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
+
     <!-- Quick Actions -->
     <v-card class="mt-6" v-if="isSeller || isSuperUser">
       <v-card-title>
@@ -46,13 +63,53 @@ import WelcomeMessage from "../components/dahboard/WelcomeMessage.vue";
 const router = useRouter();
 const user = ref(null);
 
-// Mock data for dashboard stats
-const stats = ref({
-  totalProducts: 124,
-  totalSales: 45750,
-  totalOrders: 267,
-  pendingOrders: 18,
-});
+// Dashboard cards data
+const dashboardCards = ref([
+  {
+    cardTitle: "TOTAL PRODUCTS",
+    cardColor: "primary",
+    cardStat: 124,
+    icon: "mdi-package-variant-closed",
+    prefix: "",
+    suffix: "",
+    format: "number",
+  },
+  {
+    cardTitle: "TOTAL SALES",
+    cardColor: "success",
+    cardStat: 45750,
+    icon: "mdi-currency-usd",
+    prefix: "₹",
+    suffix: "",
+    format: "currency",
+  },
+  {
+    cardTitle: "TOTAL ORDERS",
+    cardColor: "info",
+    cardStat: 267,
+    icon: "mdi-cart",
+    prefix: "",
+    suffix: "",
+    format: "number",
+  },
+  {
+    cardTitle: "PENDING ORDERS",
+    cardColor: "warning",
+    cardStat: 19,
+    icon: "mdi-clock-outline",
+    prefix: "",
+    suffix: "",
+    format: "number",
+  },
+]);
+
+// Format card stat based on its type
+const formatCardStat = (card) => {
+  if (card.format === "currency") {
+    return card.cardStat.toLocaleString();
+  }
+  return card.cardStat;
+};
 
 // Computed properties for role-based access
 const isSeller = computed(() => {

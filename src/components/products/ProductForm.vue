@@ -70,7 +70,7 @@
             type="number"
             step="0.01"
             min="0"
-            prefix="$"
+            prefix="₹"
           ></v-text-field>
         </v-col>
 

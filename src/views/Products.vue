@@ -142,6 +142,8 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showGlobalMessage } from "@/eventBus";
+import axiosInstance from "@/plugins/axios";
+
 //views
 import DashboardLayout from "@/components/layouts/DashboardLayout.vue";
 import ProductDetails from "@/components/products/ProductDetails.vue";
@@ -163,34 +165,7 @@ const headers = [
   { title: "Actions", key: "actions", sortable: false, align: "center" },
 ];
 
-// Mock products data
-const products = ref([
-  {
-    id: 1,
-    name: "Smartphone X",
-    image: "https://picsum.photos/id/1/150",
-    description: "A high-end smartphone with the latest features.",
-    price: 999.99,
-    quantity: 50,
-  },
-  {
-    id: 2,
-    name: "Laptop Pro",
-    image: "https://picsum.photos/id/2/150",
-    description: "Powerful laptop for professionals.",
-    price: 1499.99,
-    quantity: 25,
-  },
-  {
-    id: 3,
-    name: "Wireless Headphones",
-    image: "https://picsum.photos/id/3/150",
-    description: "Premium wireless headphones with noise cancellation.",
-    price: 249.99,
-    quantity: 100,
-  },
-]);
-
+const products = ref([]);
 // dialog control veriable
 const deleteDialog = ref(false);
 const formDialog = ref(false);
@@ -204,6 +179,34 @@ const currentProduct = ref({
   price: 0,
   quantity: 0,
 });
+
+// Fetch products from API
+const fetchProducts = async () => {
+  loading.value = true;
+  try {
+    const response = await axiosInstance.get("/products");
+    console.log(response);
+    products.value = response.data.map((product) => ({
+      id: product._id,
+      name: product.name,
+      image: product.image_url || "https://picsum.photos/id/20/150",
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+    }));
+    showGlobalMessage("Products loaded successfully", "success");
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    showGlobalMessage(
+      error.response?.data?.message || "Failed to load products",
+      "error"
+    );
+    // Fallback to empty array if API fails
+    products.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 const productToDelete = ref(null);
 
 //search filter
@@ -273,22 +276,46 @@ const deleteProduct = () => {
 // TODO
 
 //save / update product on local
-const saveProduct = (product) => {
+const saveProduct = async (product) => {
+  console.log("product info", product);
   if (editMode.value) {
     //update existing product
-    const index = products.value.findIndex((p) => p.id === product.id);
-    if (index !== -1) {
-      products.value[index] = { ...product };
-      showGlobalMessage("Product updated successfully", "success");
-    }
+    // const index = products.value.findIndex((p) => p.id === product.id);
+    // if (index !== -1) {
+    //   products.value[index] = { ...product };
+    //   showGlobalMessage("Product updated successfully", "success");
+    // }
+
+    console.log(product);
+    //update existing product
+    const response = await axiosInstance.put(`/products/${product.id}`, {
+      name: product.name,
+      image_url: product.image,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+    });
+    showGlobalMessage("Product updated successfully", "success");
+    fetchProducts();
   } else {
     //add new product
+    /***add Product loacally code 
     const newId = Math.max(0, ...products.value.map((p) => p.id)) + 1;
     products.value.push({
       ...product,
       id: newId,
     });
+    */
+    const response = await axiosInstance.post("/products", {
+      name: product.name,
+      image_url: product.image,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+    });
+    console.log(response);
     showGlobalMessage("Product added successfully", "success");
+    fetchProducts();
   }
   //API call
   // TODO
@@ -307,6 +334,8 @@ onMounted(() => {
         "You do not have permission to access this page",
         "error"
       );
+    } else {
+      fetchProducts();
     }
   } else {
     console.log("IN product on mound else loop");

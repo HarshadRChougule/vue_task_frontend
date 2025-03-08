@@ -21,7 +21,7 @@
         <v-chip color="error" class="mb-4" v-else> Out of Stock </v-chip>
 
         <div class="text-h5 mb-4 primary--text">
-          ${{ product.price.toFixed(2) }}
+          ₹{{ product.price.toFixed(2) }}
         </div>
 
         <div class="text-subtitle-1 mb-4">Product ID: {{ product.id }}</div>

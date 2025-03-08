@@ -45,7 +45,7 @@
           </template>
           <!-- Price Column -->
           <template #[`item.price`]="{ item }">
-            ${{ item.price.toFixed(2) }}
+            ₹{{ item.price.toFixed(2) }}
           </template>
           <!-- Actions Column -->
           <template #[`item.actions`]="{ item }">

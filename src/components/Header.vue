@@ -5,7 +5,6 @@
     <v-btn text to="/">Home</v-btn>
     <template v-if="isLoggedIn">
       <v-btn text to="/dashboard" v-if="isSeller">Dashboard</v-btn>
-      <v-btn text to="/" v-if="isUser"> My Orders</v-btn>
       <v-btn text @click="logout">Logout</v-btn>
     </template>
     <template v-if="!isLoggedIn">

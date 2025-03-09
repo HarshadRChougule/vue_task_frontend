@@ -88,6 +88,77 @@
           </v-alert>
         </v-col>
       </v-row>
+      <!-- Recently Visited Products Section -->
+      <v-row v-if="recentlyVisited && recentlyVisited.length > 0">
+        <v-col cols="12">
+          <h2 class="text-h4 mb-6">Recently Visited</h2>
+
+          <v-row>
+            <v-col
+              v-for="product in recentlyVisited"
+              :key="product.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+            >
+              <v-card
+                height="380"
+                @click="navigateToProduct(product.id)"
+                class="product-card"
+              >
+                <v-img
+                  :src="product.image"
+                  height="180"
+                  cover
+                  class="bg-grey-lighten-2"
+                ></v-img>
+
+                <v-card-title class="text-truncate">
+                  {{ product.name }}
+                  ></v-card-title
+                >
+
+                <v-card-subtitle class="text-h6 font-weight-bold">
+                  ${{ product.price.toFixed(2) }}
+                </v-card-subtitle>
+
+                <v-card-text class="text-truncate">
+                  {{ product.description }}
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-btn
+                    variant="outlined"
+                    :color="
+                      isProductLiked(product.id, likedProducts)
+                        ? 'grey'
+                        : 'primary'
+                    "
+                    size="small"
+                    class="mr-2"
+                    @click.stop="handleToggleLike(product.id)"
+                  >
+                    {{
+                      isProductLiked(product.id, likedProducts)
+                        ? "Liked"
+                        : "Like"
+                    }}
+                  </v-btn>
+
+                  <v-btn
+                    color="primary"
+                    size="small"
+                    @click.stop="handleBuyProduct(product)"
+                  >
+                    Buy
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
     </v-container>
   </DashboardLayout>
 </template>
@@ -104,6 +175,7 @@ import {
   isProductLiked,
   toggleLike,
   buyProduct,
+  loadRecentlyVisitedProducts,
 } from "@/utils/productUtils";
 
 const router = useRouter();
@@ -112,6 +184,7 @@ const loading = ref(false);
 const error = ref(null);
 const products = ref([]);
 const likedProducts = ref([]);
+const recentlyVisited = ref([]);
 
 const fetchProducts = async () => {
   loading.value = true;
@@ -127,6 +200,8 @@ const fetchProducts = async () => {
       price: product.price,
       quantity: product.quantity,
     }));
+
+    recentlyVisited.value = loadRecentlyVisitedProducts(products) || [];
   } catch (error) {
     console.error("Error featching Product ", error);
     error.value = "Failed to load products. Please try again later.";

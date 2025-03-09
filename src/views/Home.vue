@@ -53,18 +53,26 @@
                     <v-card-actions>
                       <v-btn
                         variant="outlined"
-                        :color="isProductLiked(product.id) ? 'grey' : 'primary'"
+                        :color="
+                          isProductLiked(product.id, likedProducts)
+                            ? 'grey'
+                            : 'primary'
+                        "
                         size="small"
                         class="mr-2"
-                        @click.stop="toggleLike(product.id)"
+                        @click.stop="handleToggleLike(product.id)"
                       >
-                        {{ isProductLiked(product.id) ? "Liked" : "Like" }}
+                        {{
+                          isProductLiked(product.id, likedProducts)
+                            ? "Liked"
+                            : "Like"
+                        }}
                       </v-btn>
 
                       <v-btn
                         color="primary"
                         size="small"
-                        @click.stop="buyProduct(product)"
+                        @click.stop="handleBuyProduct(product)"
                       >
                         Buy
                       </v-btn>
@@ -91,6 +99,12 @@ import DashboardLayout from "../components/layouts/DashboardLayout.vue";
 import WelcomeMessage from "../components/dahboard/WelcomeMessage.vue";
 import axiosInstance from "@/plugins/axios";
 import { showGlobalMessage } from "@/eventBus";
+import {
+  loadLikedProducts,
+  isProductLiked,
+  toggleLike,
+  buyProduct,
+} from "@/utils/productUtils";
 
 const router = useRouter();
 const user = ref(null);
@@ -121,53 +135,13 @@ const fetchProducts = async () => {
   }
 };
 
-// Load liked products from localStorage
-const loadLikedProducts = () => {
-  const userId = JSON.parse(localStorage.getItem(user))?.id;
-  if (userId) {
-    const liked = JSON.parse(
-      localStorage.getItem(`likedProducts_${userId}`) || "[]"
-    );
-    likedProducts.value = liked;
-  }
+// Handle buy product
+const handleBuyProduct = (product) => {
+  buyProduct(product);
 };
-
-// Check if product is liked
-const isProductLiked = (productId) => {
-  return likedProducts.value.includes(productId);
-};
-
-//toggle like
-const toggleLike = (productId) => {
-  console.log(productId);
-  const userId = JSON.parse(localStorage.getItem("user"))?.id;
-  if (!userId) {
-    showGlobalMessage("Please login to like products", "error");
-    return 0;
-  }
-  if (isProductLiked(productId)) {
-    likedProducts.value = likedProducts.value.filter((id) => id !== productId);
-    showGlobalMessage("Product removed from liked items", "info");
-  } else {
-    likedProducts.value.push(productId);
-    showGlobalMessage("Product liked successfully", "success");
-  }
-
-  // Save to localStorage
-  localStorage.setItem(
-    `likedProducts_${userId}`,
-    JSON.stringify(likedProducts.value)
-  );
-};
-
-// Buy product
-const buyProduct = (product) => {
-  const userId = JSON.parse(localStorage.getItem("user"))?.id;
-  if (!userId) {
-    showGlobalMessage("Please login to like products", "error");
-    return 0;
-  }
-  showGlobalMessage(`Successfully purchased ${product.name}`, "success");
+// Handle toggle like
+const handleToggleLike = (productId) => {
+  likedProducts.value = toggleLike(productId, likedProducts.value);
 };
 
 // Navigate to product details
@@ -180,7 +154,7 @@ onMounted(() => {
   const userJson = localStorage.getItem("user");
   if (userJson) {
     user.value = JSON.parse(userJson);
-    loadLikedProducts();
+    likedProducts.value = loadLikedProducts() || [];
   } else {
     //TODO
   }
